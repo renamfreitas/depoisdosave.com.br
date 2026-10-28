@@ -1,10 +1,5 @@
 # Depois do Save
 
-Landing estática (SvelteKit) que aponta para o [canal no YouTube](https://www.youtube.com/@canaldepoisdosave).
+Tema filho do [Twenty Twenty-Five](https://wordpress.org/themes/twentytwentyfive/) para [depoisdosave.com.br](https://depoisdosave.com.br).
 
-Deploy: push em `main` → GitHub Actions → DreamHost. Detalhes em [`docs/PROJECT.md`](docs/PROJECT.md).
-
-```bash
-npm ci
-npm run dev
-```
+O WordPress e o tema pai ficam no servidor. Este repositório versiona `wp-content/themes/depois-do-save-child/`. Deploy: push em `main` → GitHub Actions → DreamHost. Detalhes em [`docs/PROJECT.md`](docs/PROJECT.md).

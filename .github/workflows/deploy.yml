@@ -18,18 +18,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
       - name: Configure SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -43,7 +31,7 @@ jobs:
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
-      - name: Rsync build to DreamHost
+      - name: Rsync child theme
         env:
           DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
           DEPLOY_USER: ${{ vars.DEPLOY_USER }}
@@ -53,10 +41,8 @@ jobs:
           set -euo pipefail
           PORT="${DEPLOY_PORT:-22}"
           RSYNC_SSH="ssh -p ${PORT} -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes"
-          DEST="${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
+          DEST="${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}"
 
-          rsync -avz --delete -e "$RSYNC_SSH" \
-            --exclude '.git' \
-            --exclude '.well-known' \
-            build/ \
-            "${DEST}"
+          rsync -avz -e "$RSYNC_SSH" \
+            wp-content/themes/depois-do-save-child/ \
+            "${DEST}/wp-content/themes/depois-do-save-child/"

@@ -1,22 +1,19 @@
 # Depois do Save — project brief
 
-Working context for Depois do Save on DreamHost shared hosting and this repository.
+Working context for [depoisdosave.com.br](https://depoisdosave.com.br) (DreamHost shared hosting) and this repository.
 
-Public production: [https://depoisdosave.com.br](https://depoisdosave.com.br)
+## Production snapshot
 
-## Hosting snapshot
-
-| Item | Production |
+| Item | Value |
 | --- | --- |
-| Branch | `main` |
-| GitHub Environment | `production` |
-| Site | `depoisdosave.com.br` |
-| Document root | `/home/ursobalu/depoisdosave.com.br` |
 | SSH host | `pdx1-shared-a1-42.dreamhost.com` |
 | Shell user | `ursobalu` |
-| App type | SvelteKit → **static SPA** (`@sveltejs/adapter-static`) |
+| Document root | `/home/ursobalu/depoisdosave.com.br` |
+| WordPress | Installed on the server (not in Git) |
+| Active parent theme | Twenty Twenty-Five (`twentytwentyfive`) |
+| Child theme | `wp-content/themes/depois-do-save-child` (deployed via CI) |
 
-Same DreamHost account/user as Stickman; only the deploy path differs.
+Same DreamHost account/user as Casal Gamer; only the deploy path differs.
 
 No staging environment for this project.
 
@@ -25,30 +22,57 @@ No staging environment for this project.
 ```
 Cursor → Git → GitHub (main)
   → GitHub Actions (environment production)
-  → SSH + rsync build/
+  → SSH + rsync of the child theme
   → DreamHost → depoisdosave.com.br
 ```
 
 - GitHub is the source of truth for versioned code.
-- DreamHost serves the built static files; do not edit live files as the primary workflow.
+- DreamHost is the runtime. Do not edit live files as the primary workflow.
 
-## Repository layout (relevant)
+## Repository layout
+
+Paths mirror production `wp-content` so rsync can be path-scoped:
 
 ```
-src/                 # SvelteKit app
-static/              # Copied into build (includes .htaccess for SPA routes)
-build/               # Output of npm run build (gitignored; what CI deploys)
-.github/workflows/deploy.yml
-docs/PROJECT.md
+wp-content/themes/depois-do-save-child/
+docs/
+AGENTS.md
 ```
+
+| Package | Role |
+| --- | --- |
+| `depois-do-save-child` | Appearance on top of Twenty Twenty-Five: CSS, `theme.json`, template overrides, presentation-related PHP. Parent folder: `twentytwentyfive`. |
+
+Twenty Twenty-Five is a block theme. Day-to-day layout, colors, and templates edited in the Site Editor are stored in the database, not in this repo. Put code that must survive a parent update in the child theme.
+
+## What belongs in Git
+
+**Keep out**
+
+- WordPress core (`wp-admin`, `wp-includes`, …)
+- The parent theme and other bundled themes (`twentytwentyfive`, …)
+- Third-party plugins
+- `wp-content/uploads`, cache, logs, backups, database dumps
+- `wp-config.php`, passwords, application passwords, SSH keys, any secrets
+
+**Keep in**
+
+- The Depois do Save child theme, docs, and the GitHub Actions workflow
+
+## Theme strategy
+
+- Keep Twenty Twenty-Five as the parent. It ships with WordPress and receives automatic updates from wordpress.org.
+- The child `style.css` header must stay `Template: twentytwentyfive`.
+- Do not copy the parent into Git or into the child.
+- Turn on automatic updates for WordPress core and for Twenty Twenty-Five in wp-admin. A manual install is not updated by the DreamHost one-click updater.
 
 ## CI/CD
 
 - Workflow: `.github/workflows/deploy.yml`
-- Push / `workflow_dispatch` on **`main`** → Environment **`production`**
-- Steps: `npm ci` → `npm run build` → SSH + `rsync` of `build/` to `DEPLOY_PATH`
-- Uses `--delete` so stale hashed assets disappear (safe: document root is this app only)
-- Excludes `.well-known` (Let’s Encrypt / panel files on DreamHost)
+- Push / `workflow_dispatch` on **`main`** → GitHub Environment **`production`**
+- SSH + `rsync` of the child theme only (no `--delete`):
+
+  - `wp-content/themes/depois-do-save-child/`
 
 ### GitHub Environment `production`
 
@@ -61,22 +85,15 @@ docs/PROJECT.md
 | Variable | `SSH_KNOWN_HOSTS` | output of `ssh-keyscan -H pdx1-shared-a1-42.dreamhost.com` |
 | Secret | `SSH_PRIVATE_KEY` | deploy key PEM authorized for `ursobalu` |
 
-Confirm in the DreamHost panel that the site document root is `/home/ursobalu/depoisdosave.com.br` (adjust `DEPLOY_PATH` if the panel shows another folder).
+Do not put the private key, DreamHost password, or `wp-config` values in the repo.
 
-Do not put the private key or DreamHost password in the repo.
+## After the first deploy
 
-## Local build check
-
-```bash
-npm ci
-npm run build
-npm run preview
-```
-
-Output must land in `build/` (including `.htaccess`).
+In **Aparência → Temas**, activate **Depois do Save Child**. Twenty Twenty-Five must stay installed; WordPress loads it as the parent.
 
 ## Principles
 
-- Prefer simple, maintainable solutions (static hosting, no Node on shared).
+- Prefer simple, maintainable solutions.
 - No secrets in the repo.
+- No `rsync --delete` of the document root. That would remove WordPress.
 - Code and commits in English; conversation with the maintainer may be in Portuguese.

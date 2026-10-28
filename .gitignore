@@ -1,10 +1,38 @@
+# OS / editor
 .DS_Store
-node_modules
-/build
-/.svelte-kit
-/package
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.code-workspace
+
+# Env and secrets
 .env
 .env.*
 !.env.example
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
+*.pem
+id_rsa
+id_ed25519
+*.key
+
+# WordPress — never version runtime / host-owned paths
+wp-config.php
+wp-config-*.php
+!wp-content/
+
+# Uploads, cache, logs, backups
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/backup*/
+*.log
+*.sql
+*.sql.gz
+*.zip
+
+# Parent and other bundled themes (installed on the server)
+wp-content/themes/twenty*/
+
+# Plugins that ship with WordPress
+wp-content/plugins/akismet/
+wp-content/plugins/hello.php
